@@ -36,7 +36,7 @@ class InventoryApp: # Clase inventario
                             weight=ft.FontWeight.BOLD),
                     ft.ProgressRing(),  # Animación de carga
                 ],
-                alignment=ft.MainAxisAlignment.CENTER, # alinear a la 
+                alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             ),
             expand=True,
@@ -75,10 +75,8 @@ class InventoryApp: # Clase inventario
 # ------------------------------------------- Cargar Data ------------------------------      
     def load_items(self, e=None):
         self.items_list.controls.clear()
-        
         self.cursor.execute("SELECT * FROM items ORDER BY name")
         items = self.cursor.fetchall()
-        
         if not items:
             self.items_list.controls.append(
                 ft.ListTile(title=ft.Text("No hay productos registrados"))
@@ -88,19 +86,15 @@ class InventoryApp: # Clase inventario
                 self.items_list.controls.append(
                     self.create_item_card(item, idx)
                 )
-        
         self.page.update()
 # ---------------------------------------- Crear tarjetas de productos -------------------------------
     def create_item_card(self, item, index):
         id, name, category, quantity, min_stock, last_updated = item
-        
-        # Determinar color según stock
-        quantity_color = ft.Colors.GREEN
+        quantity_color = ft.Colors.GREEN # color stock
         if min_stock and quantity <= min_stock:
             quantity_color = ft.Colors.ORANGE
         if quantity == 0:
             quantity_color = ft.Colors.RED
-        
         return ft.Card(
             content=ft.Container(
                 content=ft.Column([
@@ -109,13 +103,10 @@ class InventoryApp: # Clase inventario
                         title=ft.Text(name),
                         subtitle=ft.Text(f"Categoría: {category}" if category else "Sin categoría"),
                     ),
-                    
                     ft.Row([
                         ft.Text(f"Stock: {quantity}", color=quantity_color),
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    
                     ft.Text(f"Última actualización: {last_updated}"),
-                    
                     ft.Row([
                         ft.IconButton(
                             icon=ft.Icons.EDIT,
@@ -125,7 +116,7 @@ class InventoryApp: # Clase inventario
                         ft.IconButton(
                             icon=ft.Icons.DELETE,
                             icon_color=ft.Colors.RED,
-                            on_click=lambda e, item_id=id: self.delete_item(id)  # Pasamos el id directamente
+                            on_click=lambda e, item_id=id: self.delete_item(id)
                         ),
                     ], alignment=ft.MainAxisAlignment.END)
                 ]),
@@ -163,7 +154,6 @@ class InventoryApp: # Clase inventario
             color=ft.Colors.WHITE
             
         )
-        
         # Botón para mostrar/ocultar Inventario
         self.toggle_inventario_button = ft.ElevatedButton(
             "Ver Inventario",
@@ -173,7 +163,7 @@ class InventoryApp: # Clase inventario
         )
         # Lista de productos
         self.items_list = ft.ListView(expand=True)
-        
+        x
         # Contenedor del formulario (visible inicialmente)
         self.form_container = ft.Column(
             [
@@ -186,7 +176,6 @@ class InventoryApp: # Clase inventario
             ],
             spacing=10
         )
-        
         # Contenedor del Inventario (oculto inicialmente)
         self.history_container = ft.Column(
             [
@@ -203,7 +192,7 @@ class InventoryApp: # Clase inventario
         )
         # Diseño principal
         self.page.add(
-            ft.Container(  # <-- Este es el contenedor nuevo que debes agregar
+            ft.Container(  
                 content=ft.Column(
                     [
                         ft.Row(
@@ -216,9 +205,9 @@ class InventoryApp: # Clase inventario
                         )
                     ],
                 ),
-                padding=ft.padding.only(top=30),  # Margen superior de 30px
+                padding=ft.padding.only(top=30),  
             ),
-            ft.Container(  # <-- Este es el contenedor nuevo que debes agregar
+            ft.Container(  
                 content=ft.Column(
                     [
                         ft.Row([self.search_field]),
@@ -231,44 +220,32 @@ class InventoryApp: # Clase inventario
                     expand=True,
                     spacing=10
                 ),
-                padding=ft.padding.only(top=20),  # Margen superior de 30px
+                padding=ft.padding.only(top=20), 
                 expand=True
             )
         )
 # ------------------------------------- Funciones de UI ----------------------------------------    
     def toggle_history_view(self, e):
         self.show_history = not self.show_history
-        
-        # Actualizar visibilidad de los contenedores
-        self.form_container.visible = not self.show_history
         self.history_container.visible = self.show_history
-        
-        # Cambiar el texto del botón según el estado
         self.toggle_inventario_button.text = "Ver Inventario" if not self.show_history else "Ocultar Inventario"
-        
-        # Si estamos mostrando el Inventario, cargar los items
         if self.show_history:
             self.load_items()
-        
         self.page.update()
 # ------------------------------------- Funciones de: agregar, editar, eliminar productos ------------------
     def add_item(self, e):
         name = self.name_field.value.strip()
         category = self.category_field.value.strip()
         quantity = self.quantity_field.value.strip()
-        
         if not name or not quantity: 
             self.page.snack_bar = ft.SnackBar(ft.Text("Nombre y cantidad son obligatorios!"))
             self.page.snack_bar.open = True
             self.page.update()
             return
-        
         try:
             quantity = int(quantity)
             min_stock = int(self.min_stock_field.value) if self.min_stock_field.value else None
-            
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
             if self.edit_mode and self.selected_index is not None:
                 # Actualizar producto existente
                 item_id = self.get_item_id(self.selected_index)
@@ -295,45 +272,35 @@ class InventoryApp: # Clase inventario
                     (name, category, quantity, min_stock, now)
                 )
                 self.page.snack_bar = ft.SnackBar(ft.Text("Producto agregado!"))
-            
             self.conn.commit()
             self.clear_form()
             self.load_items()
             self.page.snack_bar.open = True
             self.page.update()
-            
         except ValueError as ve:
             self.page.snack_bar = ft.SnackBar(ft.Text(f"Error en los datos: {str(ve)}"))
             self.page.snack_bar.open = True
             self.page.update()
-
     def edit_item(self, index):
         item_id = self.get_item_id(index)
         self.cursor.execute("SELECT * FROM items WHERE id=?", (item_id,))
         item = self.cursor.fetchone()
-        
         if item:
             _, name, category, quantity, min_stock, _ = item
-            
             self.name_field.value = name
             self.category_field.value = category if category else ""
             self.quantity_field.value = str(quantity)
             self.min_stock_field.value = str(min_stock) if min_stock else ""
-            
             self.selected_index = index
             self.edit_mode = True
             self.submit_button.text = "Actualizar Producto"
             self.submit_button.icon = ft.Icons.SAVE
-            
             # Asegurarse de que el formulario esté visible
             if self.show_history:
                 self.toggle_history_view(None)
-            
             self.page.update()
-    
     def delete_item(self, item_id):
         print(f"Intentando eliminar el producto con ID: {item_id}")
-        
         self.cursor.execute("DELETE FROM items WHERE id=?", (item_id,)) # Ejecutar el borrado
         self.conn.commit() # Confirmar la transacción
         self.load_items() # Actualizar la lista de productos
@@ -345,7 +312,6 @@ class InventoryApp: # Clase inventario
             # Obtenemos todos los IDs ordenados igual que en la vista
             self.cursor.execute("SELECT id FROM items ORDER BY name")
             results = self.cursor.fetchall()
-            
             if index < len(results):
                 return results[index][0]
             return None
@@ -358,29 +324,23 @@ class InventoryApp: # Clase inventario
         self.category_field.value = ""
         self.quantity_field.value = ""
         self.min_stock_field.value = ""
-        
         self.selected_index = None
         self.edit_mode = False
         self.submit_button.text = "Agregar Producto"
         self.submit_button.icon = ft.Icons.ADD
-        
         self.page.update()
 # ------------------------------ Buscador -----------------------------------
     def search_items(self, e):
         search_term = self.search_field.value.strip().lower()
-        
         if not search_term:
             self.load_items()
             return
-        
         self.cursor.execute(
             "SELECT * FROM items WHERE LOWER(name) LIKE ? OR LOWER(category) LIKE ? ORDER BY name",
             (f"%{search_term}%", f"%{search_term}%")
         )
         items = self.cursor.fetchall()
-        
         self.items_list.controls.clear()
-        
         if not items:
             self.items_list.controls.append(
                 ft.ListTile(title=ft.Text("No se encontraron productos"))
