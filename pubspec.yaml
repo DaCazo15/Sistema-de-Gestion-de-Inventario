@@ -1,0 +1,22 @@
+publish_to: none # no publicar en pub.dev
+
+name: inventario_flet
+description: Inventario Flet
+version: 1.0.0
+
+
+environment: # version de flutter y dart
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flet: ^0.1.0
+  package_info_plus: ^8.3.0
+  path: ^1.8.3
+  path_provider: ^2.0.11
+  serious_python: ^0.1.5
+  url_strategy: ^0.2.0
+  window_manager: ^0.2.0
+  file_picker: ^5.5.0
